@@ -5,11 +5,11 @@ from __future__ import print_function
 from evaluate import evaluate_class
 from DB import Database
 
-from six.moves import cPickle
+import cv2
 import numpy as np
-import scipy.misc
 from math import sqrt
 import os
+import pickle
 
 
 stride = (1, 1)
@@ -104,7 +104,7 @@ class Edge(object):
     if isinstance(input, np.ndarray):  # examinate input type
       img = input.copy()
     else:
-      img = scipy.misc.imread(input, mode='RGB')
+      img = cv2.imread(input, cv2.IMREAD_COLOR)
     height, width, channel = img.shape
   
     if type == 'global':
@@ -162,7 +162,7 @@ class Edge(object):
       sample_cache = "edge-{}-stride{}-n_slice{}".format(h_type, stride, n_slice)
   
     try:
-      samples = cPickle.load(open(os.path.join(cache_dir, sample_cache), "rb", True))
+      samples = pickle.load(open(os.path.join(cache_dir, sample_cache), "rb"))
       for sample in samples:
         sample['hist'] /= np.sum(sample['hist'])  # normalize
       if verbose:
@@ -181,7 +181,7 @@ class Edge(object):
                         'cls':  d_cls, 
                         'hist': d_hist
                       })
-      cPickle.dump(samples, open(os.path.join(cache_dir, sample_cache), "wb", True))
+      pickle.dump(samples, open(os.path.join(cache_dir, sample_cache), "wb"))
   
     return samples
 
