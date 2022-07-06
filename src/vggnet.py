@@ -7,10 +7,10 @@ import torch.nn as nn
 from torchvision import models
 from torchvision.models.vgg import VGG
 
-from six.moves import cPickle
+import cv2
 import numpy as np
-import scipy.misc
 import os
+import pickle
 
 from evaluate import evaluate_class
 from DB import Database
@@ -147,10 +147,10 @@ class VGGNetFeat(object):
     sample_cache = '{}-{}'.format(VGG_model, pick_layer)
   
     try:
-      samples = cPickle.load(open(os.path.join(cache_dir, sample_cache), "rb", True))
+      samples = pickle.load(open(os.path.join(cache_dir, sample_cache), "rb"))
       for sample in samples:
         sample['hist'] /= np.sum(sample['hist'])  # normalize
-      cPickle.dump(samples, open(os.path.join(cache_dir, sample_cache), "wb", True))
+      pickle.dump(samples, open(os.path.join(cache_dir, sample_cache), "wb"))
       if verbose:
         print("Using cache..., config=%s, distance=%s, depth=%s" % (sample_cache, d_type, depth))
     except:
@@ -165,8 +165,8 @@ class VGGNetFeat(object):
       data = db.get_data()
       for d in data.itertuples():
         d_img, d_cls = getattr(d, "img"), getattr(d, "cls")
-        img = scipy.misc.imread(d_img, mode="RGB")
-        img = img[:, :, ::-1]  # switch to BGR
+        img = cv2.imread(d_img, cv2.IMREAD_COLOR)
+        # img = img[:, :, ::-1]  # switch to BGR
         img = np.transpose(img, (2, 0, 1)) / 255.
         img[0] -= means[0]  # reduce B's mean
         img[1] -= means[1]  # reduce G's mean
@@ -187,7 +187,7 @@ class VGGNetFeat(object):
                          })
         except:
           pass
-      cPickle.dump(samples, open(os.path.join(cache_dir, sample_cache), "wb", True))
+      pickle.dump(samples, open(os.path.join(cache_dir, sample_cache), "wb", True))
   
     return samples
 
